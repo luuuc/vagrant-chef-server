@@ -1,0 +1,5 @@
+/cookbooks
+/.bundle
+/.chef
+/.vagrant
+/vendor
