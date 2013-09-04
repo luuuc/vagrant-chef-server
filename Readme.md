@@ -171,9 +171,9 @@ Configure knife
 
 Check knife configuration:
 
-  $ knife client list
-  > chef-validator
-  > chef-webui
+    $ knife client list
+    > chef-validator
+    > chef-webui
 
 
 
