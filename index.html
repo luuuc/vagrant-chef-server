@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Vagrant-chef-server by lucdiallo</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Vagrant-chef-server</h1>
+        <p>Setup a chef server with vagrant</p>
+
+        <p class="view"><a href="https://github.com/lucdiallo/vagrant-chef-server">View the Project on GitHub <small>lucdiallo/vagrant-chef-server</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/lucdiallo/vagrant-chef-server/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/lucdiallo/vagrant-chef-server/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/lucdiallo/vagrant-chef-server">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="vagrant-chef-server" class="anchor" href="#vagrant-chef-server"><span class="octicon octicon-link"></span></a>Vagrant Chef Server</h1>
+
+<h1>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h1>
+
+<p>You need the following.</p>
+
+<ol>
+<li>
+<p>virtualbox (<a href="https://www.virtualbox.org">https://www.virtualbox.org</a>)</p>
+
+<ul>
+<li>The latest VirtualBox platform packages.</li>
+<li>The latest VirtualBox Extension Pack.</li>
+</ul>
+</li>
+<li>
+<p>ruby (<a href="https://www.ruby-lang.org">https://www.ruby-lang.org</a>)</p>
+
+<ul>
+<li>I'm using version 2.0.0-p247 with rbenv/ruby-build (installed via homebrew)</li>
+<li>You have a great installation tutorial at <a href="https://github.com/sstephenson/rbenv#installation">https://github.com/sstephenson/rbenv#installation</a>
+</li>
+</ul>
+</li>
+<li>
+<p>Chef (<a href="http://www.opscode.com">http://www.opscode.com</a>)</p>
+
+<ul>
+<li>You have a great installation tutorial at <a href="https://learnchef.opscode.com/quickstart/workstation-setup/">https://learnchef.opscode.com/quickstart/workstation-setup/</a>
+</li>
+</ul>
+</li>
+<li><p>Vagrant (<a href="http://www.vagrantup.com">http://www.vagrantup.com</a>)</p></li>
+<li>
+<p>Omnibus Vagrant plugin (<a href="https://github.com/schisamo/vagrant-omnibus">https://github.com/schisamo/vagrant-omnibus</a>)</p>
+
+<ul>
+<li>In you terminal issue the command <code>vagrant plugin install vagrant-omnibus</code>
+</li>
+</ul>
+</li>
+<li>
+<p>Berkshelf Vagrant plugin (<a href="https://github.com/riotgames/vagrant-berkshelf">https://github.com/riotgames/vagrant-berkshelf</a>)</p>
+
+<ul>
+<li>In you terminal issue the command <code>vagrant plugin install vagrant-berkshelf</code>
+</li>
+</ul>
+</li>
+</ol><h1>
+<a name="quick-install" class="anchor" href="#quick-install"><span class="octicon octicon-link"></span></a>Quick Install</h1>
+
+<p>First clone this repository then </p>
+
+<pre><code>$ bundle install --path vendor
+$ berks install --path cookbooks
+$ vagrant up
+</code></pre>
+
+<p>Visit <a href="https://10.33.33.33/version">https://10.33.33.33/version</a> to check if everything is working.
+Then <a href="https://10.33.33.33">https://10.33.33.33</a> to access the web interface (admin/p@ssw0rd1).
+Change to a secure password and regenerate certificates.</p>
+
+<h1>
+<a name="do-it-yourself" class="anchor" href="#do-it-yourself"><span class="octicon octicon-link"></span></a>Do it yourself</h1>
+
+<h2>
+<a name="project-setup" class="anchor" href="#project-setup"><span class="octicon octicon-link"></span></a>Project Setup</h2>
+
+<p>Create and move to the project folder.</p>
+
+<pre><code>$ mkdir vagrant-chef-server
+$ cd vagrant-chef-server
+</code></pre>
+
+<p>Create a gem file.</p>
+
+<pre><code>$ cat &gt; Gemfile &lt;&lt;EOF
+source "https://rubygems.org"
+
+gem "knife-solo"
+gem "berkshelf"
+
+EOF
+</code></pre>
+
+<p>Install the gem locally to a new 'vendor' folder.  </p>
+
+<pre><code>$ bundle install --path vendor
+</code></pre>
+
+<p>Create a knife solo (a.k.a chef solo) folder structure.</p>
+
+<pre><code>$ knife solo init .
+</code></pre>
+
+<p>Create a Berkshelf file to manage cookbooks.</p>
+
+<pre><code>$ cat &gt; Berksfile &lt;&lt;EOF
+site :opscode
+
+cookbook 'chef-server'
+
+EOF
+</code></pre>
+
+<p>Install Berkshelf cookbooks.</p>
+
+<pre><code>$ berks install --path cookbooks
+</code></pre>
+
+<h2>
+<a name="configure-chef-server-node" class="anchor" href="#configure-chef-server-node"><span class="octicon octicon-link"></span></a>Configure Chef Server Node</h2>
+
+<p>Create “chef.json” file in the role folder with the following content. </p>
+
+<pre><code>{
+  "name": "chef",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "description": "The base role for Chef Server",
+  "default_attributes": {
+    "chef-server": {
+      "version": "latest",
+      "configuration": {
+        "chef_server_webui": {
+          "enable": true
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[chef-server::default]"
+  ]
+}
+</code></pre>
+
+<p>You can change or find more info to the above settings at <a href="https://github.com/opscode-cookbooks/chef-server/blob/master/attributes/default.rb">https://github.com/opscode-cookbooks/chef-server/blob/master/attributes/default.rb</a></p>
+
+<p>Done ! </p>
+
+<h2>
+<a name="configure-vagrant" class="anchor" href="#configure-vagrant"><span class="octicon octicon-link"></span></a>Configure Vagrant</h2>
+
+<p>Create a vagrant intialization file with the following command.</p>
+
+<pre><code>vagrant init
+</code></pre>
+
+<p>Change your vagrant to file to:</p>
+
+<pre><code># -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "precise64"
+  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+  config.vm.network :private_network, ip: "10.33.33.33"
+  config.vm.network :forwarded_port, guest: 80, host: 8000
+  config.vm.network :forwarded_port, guest: 443, host: 8443
+
+  config.vm.provider :virtualbox do |v|
+    v.name = "chef-server"
+    v.customize ["modifyvm", :id, "--cpus", "2"]
+    v.customize ["modifyvm", :id, "--memory", "1024"]
+  end
+
+  config.omnibus.chef_version = :latest
+  config.berkshelf.enabled = true
+
+  config.vm.provision :chef_solo do |chef|
+    chef.cookbooks_path = "cookbooks"
+    chef.roles_path = "roles"
+    chef.data_bags_path = "data_bags"
+
+    chef.add_role("chef")
+  end
+end
+</code></pre>
+
+<p>Launch the virtual machines.</p>
+
+<pre><code>$ vagrant up
+</code></pre>
+
+<p>Visit <a href="https://10.33.33.33/version">https://10.33.33.33/version</a> to check if everything is working.
+Then <a href="https://10.33.33.33">https://10.33.33.33</a> to access the web interface (admin/p@ssw0rd1).
+Change to a secure password and regenerate certificates.</p>
+
+<p>You can access your chef server from another computer in the same network with https://your-machine-ip:8443</p>
+
+<p>Connect through ssh to copy your chef server keys.</p>
+
+<pre><code>$ vagrant ssh chef
+vagrant@precise64:~$ sudo cp /etc/chef-server/*.pem /vagrant/.chef/
+</code></pre>
+
+<h2>
+<a name="knife-configuration" class="anchor" href="#knife-configuration"><span class="octicon octicon-link"></span></a>Knife configuration</h2>
+
+<p>Configure knife</p>
+
+<pre><code>$ knife configure -i
+</code></pre>
+
+<ul>
+<li>chef server URL: <a href="https://10.33.33.33">https://10.33.33.33</a>
+</li>
+<li>clientname: admin</li>
+<li>admin client's private key: .chef/webui.pem</li>
+<li>validation key: .chef/validation.pem</li>
+</ul><p>Check knife configuration:</p>
+
+<pre><code>$ knife client list
+&gt; chef-validator
+&gt; chef-webui
+</code></pre>
+
+<p><strong>That's it! You're now ready to cook.</strong></p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/lucdiallo">lucdiallo</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
