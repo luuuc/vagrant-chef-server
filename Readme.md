@@ -1,5 +1,7 @@
 # Vagrant Chef Server
 
+http://lucdiallo.github.io/vagrant-chef-server 
+
 # Requirements
 
 You need the following.
