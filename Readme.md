@@ -18,7 +18,7 @@ You need the following.
 4. Vagrant (http://www.vagrantup.com)
 
 5. Omnibus Vagrant plugin (https://github.com/schisamo/vagrant-omnibus)
-  - In you terminal issue the command `vagrant plugin install vagrant-omnibus
+  - In you terminal issue the command `vagrant plugin install vagrant-omnibus`
 
 5. Berkshelf Vagrant plugin (https://github.com/riotgames/vagrant-berkshelf)
   - In you terminal issue the command `vagrant plugin install vagrant-berkshelf`
