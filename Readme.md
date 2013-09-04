@@ -2,15 +2,28 @@
 
 # Requirements
 
-- virtualbox
-- ruby
-- Chef
-- Vagrant + plugins
+You need the following.
 
-    $ vagrant plugin install vagrant-berkshelf
-    $ vagrant plugin install vagrant-omnibus
+1. virtualbox (https://www.virtualbox.org)
+  - The latest VirtualBox platform packages.
+  - The latest VirtualBox Extension Pack.
 
-# Install
+2. ruby (https://www.ruby-lang.org)
+  - I'm using version 2.0.0-p247 with rbenv/ruby-build (installed via homebrew)
+  - You have a great installation tutorial at https://github.com/sstephenson/rbenv#installation
+
+3. Chef (http://www.opscode.com)
+  - You have a great installation tutorial at https://learnchef.opscode.com/quickstart/workstation-setup/
+
+4. Vagrant (http://www.vagrantup.com)
+
+5. Omnibus Vagrant plugin (https://github.com/schisamo/vagrant-omnibus)
+  - In you terminal issue the command `vagrant plugin install vagrant-omnibus
+
+5. Berkshelf Vagrant plugin (https://github.com/riotgames/vagrant-berkshelf)
+  - In you terminal issue the command `vagrant plugin install vagrant-berkshelf`
+
+# Quick Install
 
 First clone this repository then 
 
@@ -26,7 +39,7 @@ Change to a secure password and regenerate certificates.
 
 ## Project Setup
 
-Create a move to the project folder.
+Create and move to the project folder.
 
     $ mkdir vagrant-chef-server
     $ cd vagrant-chef-server
@@ -106,40 +119,25 @@ Change your vagrant to file to:
       config.vm.box = "precise64"
       config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
-      config.omnibus.chef_version = :latest
-      config.berkshelf.enabled = true
-      
-      config.vm.define :chef do |chef_server|  
-        chef_server.vm.provider :virtualbox do |v|
-          v.name = "chef-server"
-          #v.customize ["modifyvm", :id, "--cpus", "2"]
-          v.customize ["modifyvm", :id, "--memory", "1024"]
-        end
+      config.vm.network :private_network, ip: "10.33.33.33"
+      config.vm.network :forwarded_port, guest: 80, host: 8000
+      config.vm.network :forwarded_port, guest: 443, host: 8443
 
-        chef_server.vm.network :private_network, ip: "10.33.33.33"
-
-        chef_server.ssh.max_tries = 40
-        chef_server.ssh.timeout   = 120
-
-        chef_server.vm.provision :chef_solo do |chef|
-          chef.cookbooks_path = "cookbooks"
-          chef.roles_path = "roles"
-          chef.data_bags_path = "data_bags"
-          
-          chef.add_role("chef")
-          #chef.add_recipe "chef-server::default"
-        end
+      config.vm.provider :virtualbox do |v|
+        v.name = "chef-server"
+        v.customize ["modifyvm", :id, "--cpus", "2"]
+        v.customize ["modifyvm", :id, "--memory", "1024"]
       end
 
-      config.vm.define :chef_client do |chef_client|
-        chef_client.vm.provider :virtualbox do |v|
-          v.name = "chef-client"
-        end
-            
-        chef_client.vm.network :private_network, ip: "10.33.33.50"
+      config.omnibus.chef_version = :latest
+      config.berkshelf.enabled = true
 
-        chef_client.ssh.max_tries = 40
-        chef_client.ssh.timeout   = 120
+      config.vm.provision :chef_solo do |chef|
+        chef.cookbooks_path = "cookbooks"
+        chef.roles_path = "roles"
+        chef.data_bags_path = "data_bags"
+        
+        chef.add_role("chef")
       end
     end
 
@@ -150,6 +148,8 @@ Launch the virtual machines.
 Visit https://10.33.33.33/version to check if everything is working.
 Then https://10.33.33.33 to access the web interface (admin/p@ssw0rd1).
 Change to a secure password and regenerate certificates.
+
+You can access your chef server from another computer in the same network with https://your-machine-ip:8443
 
 
 Connect through ssh to copy your chef server keys.
@@ -176,4 +176,5 @@ Check knife configuration:
     > chef-webui
 
 
+**That's it! You're now ready to cook.**
 
